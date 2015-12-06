@@ -1,22 +1,29 @@
 package plne;
+
+import ilog.concert.IloException;
+import ilog.concert.IloIntVar;
+import ilog.concert.IloLinearNumExpr;
+import ilog.concert.IloObjective;
+import ilog.cplex.IloCplex;
+
 import java.util.ArrayList;
 import java.util.TreeSet;
 
-import ilog.opl.*;
-import ilog.concert.*;
-import ilog.cplex.IloCplex;
-
-
-public class Conventionnal {
+public class FlowBased {
 
 	public static void defModel(IloCplex cplex, Map map) throws IloException {
         
         int numNodes = map.getNumNodes(); 
         double[][] weight = map.weights; 
+        // Def variables
         IloIntVar[][] x = new IloIntVar[numNodes][];
+        IloIntVar[][] y = new IloIntVar[numNodes][];
         for(int i = 0; i < numNodes; i++){
         	x[i] = cplex.boolVarArray(numNodes);
+        	y[i] = cplex.intVarArray(numNodes, 0, Integer.MAX_VALUE);
         }
+        
+        // Objectif
         IloObjective obj = cplex.addMinimize();	
         IloLinearNumExpr objectif = cplex.linearNumExpr();
         for(int j = 0; j < numNodes; j++){
@@ -26,7 +33,7 @@ public class Conventionnal {
         }
         obj.setExpr(objectif);
         
-        
+       // contrainte 1 
         for(int j = 0; j < numNodes; j++){
         	IloLinearNumExpr chemins = cplex.linearNumExpr();
         	for(int i = 0; i < numNodes; i++){
@@ -36,6 +43,7 @@ public class Conventionnal {
         	}
         	cplex.addEq(1, chemins); 
         }
+       // contrainte 2
         for(int j = 0; j < numNodes; j++){
         	IloLinearNumExpr chemins = cplex.linearNumExpr();
         	for(int i = 0; i < numNodes; i++){
@@ -46,23 +54,37 @@ public class Conventionnal {
         	cplex.addEq(1, chemins); 
         }
         
-		TreeSet<Integer> F = new TreeSet<Integer>();
-		for(int i = 1; i < numNodes; i++){
-			F.add(i);
-		}
-		ArrayList<ArrayList<Integer>> coupes = Tools.coupe(F, 1, 3);
-        for(ArrayList<Integer> M : coupes){
-        	IloLinearNumExpr coupeCard = cplex.linearNumExpr();
-        	for(int j : M){
-        		for(int i : M){
-        			if(i!=j){
-        				coupeCard.addTerm(1, x[i][j]);
-        			}
+        // Flow Constraints
+		// contrainte 7
+        for (int i = 0; i < numNodes; i++){
+        	for (int j = 0; j < numNodes; j++){
+        		if(j!=i){
+        			cplex.addLe(y[i][j], cplex.prod(numNodes-1, x[i][j]));
         		}
-        		cplex.addLe(coupeCard, M.size() - 1);
         	}
         }
-		
+        // contrainte 8
+        IloLinearNumExpr flowEight = cplex.linearNumExpr();
+        for(int j = 1; j < numNodes; j++){
+        	flowEight.addTerm(1, y[0][j]);
+        	cplex.addEq(flowEight, numNodes-1); 
+        }
+        // contrainte 9
+        for(int j = 1; j < numNodes; j++){
+        	IloLinearNumExpr flow = cplex.linearNumExpr();
+        	for(int i = 0; i < numNodes; i++){
+        		if(i!=j){
+        			flow.addTerm(1, y[i][j]);
+        		}
+        	}
+        	for(int k = 0; k < numNodes; k++){
+        		if(k!=j){
+        			flow.addTerm(-1, y[j][k]);
+        		}
+        	}
+        	cplex.addEq(flow, 1); 
+        }
+
 	}
 	
 	public static void main(String[] args) {
@@ -82,5 +104,5 @@ public class Conventionnal {
 			System.err.println("Concert exception '" + e + "' caught");
 		}
 	}
-	
+
 }
