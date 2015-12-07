@@ -11,7 +11,7 @@ import java.util.TreeSet;
 
 public class Sequential {
 
-	public static void defModel(IloCplex cplex, Map map) throws IloException {
+	public static IloIntVar[][] defModel(IloCplex cplex, Map map) throws IloException {
         
         int numNodes = map.getNumNodes(); 
         double[][] weight = map.weights; 
@@ -65,6 +65,7 @@ public class Sequential {
         		}
         	}
         }
+		return x;
 
 	}
 	
@@ -73,12 +74,13 @@ public class Sequential {
 		try{
 			Map map = new Map();
 			IloCplex cplex = new IloCplex();
-			defModel(cplex, map);
+			IloIntVar[][] x = defModel(cplex, map);
 			if ( cplex.solve() ) {
 				cplex.output().println("Solution status = " + cplex.getStatus());
 				cplex.output().println("Solution value  = " + cplex.getObjValue());
 
 			}
+			ArrayList<Integer> resX = Tools.getResult(cplex, x);
 			cplex.end();
 		}
 		catch (IloException e) {

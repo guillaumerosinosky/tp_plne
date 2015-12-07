@@ -18,7 +18,7 @@ public class Map {
 	private int numNodes;
 
 	public Map() {
-		setNumNodes(15);
+		setNumNodes(7);
 		demand = new int[getNumNodes()];
 		weights = new double[getNumNodes()][getNumNodes()];
 		x = new double[getNumNodes()];
