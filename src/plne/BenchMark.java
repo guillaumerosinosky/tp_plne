@@ -49,6 +49,22 @@ public class BenchMark {
 			cplex.clearModel();
 			System.out.println("Valeur de l'objectif  : " + objVal);
 			System.out.println(resX);
+			
+			x = TimeStaged2.defModel(cplex, map);
+			cplex.solve();
+			objVal = cplex.getObjValue();
+			resX = Tools.getResult(cplex, x);
+			cplex.clearModel();
+			System.out.println("Valeur de l'objectif  : " + objVal);
+			System.out.println(resX);
+			
+			x = TimeStaged3.defModel(cplex, map);
+			cplex.solve();
+			objVal = cplex.getObjValue();
+			resX = Tools.getResult(cplex, x);
+			cplex.clearModel();
+			System.out.println("Valeur de l'objectif  : " + objVal);
+			System.out.println(resX);
 			cplex.end();
 		}
 		catch (IloException e) {
