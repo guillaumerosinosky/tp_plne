@@ -2,6 +2,7 @@ package plne;
 import java.util.ArrayList;
 import java.util.TreeSet;
 
+import vrp.Map;
 import ilog.opl.*;
 import ilog.concert.*;
 import ilog.cplex.IloCplex;
@@ -12,10 +13,14 @@ public class Conventionnal {
 	public static IloIntVar[][] defModel(IloCplex cplex, Map map) throws IloException {
         
         int numNodes = map.getNumNodes(); 
-        double[][] weight = map.weights; 
+        double[][] weight = new double[numNodes][];
         IloIntVar[][] x = new IloIntVar[numNodes][];
         for(int i = 0; i < numNodes; i++){
         	x[i] = cplex.boolVarArray(numNodes);
+        	weight[i] = new double[numNodes];
+        	for(int j = 0; j < numNodes; j++){
+        		weight[i][j] = map.getWeight(i, j);
+        	}
         }
         IloObjective obj = cplex.addMinimize();	
         IloLinearNumExpr objectif = cplex.linearNumExpr();

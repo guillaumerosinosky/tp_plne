@@ -9,12 +9,20 @@ import ilog.cplex.IloCplex;
 import java.util.ArrayList;
 import java.util.TreeSet;
 
+import vrp.Map;
+
 public class TimeStaged3 {
 
 	public static IloIntVar[][] defModel(IloCplex cplex, Map map) throws IloException {
         
         int numNodes = map.getNumNodes(); 
-        double[][] weight = map.weights; 
+        double[][] weight = new double[numNodes][];
+        for(int i = 0; i < numNodes; i++){
+        	weight[i] = new double[numNodes];
+        	for(int j = 0; j < numNodes; j++){
+        		weight[i][j] = map.getWeight(i, j);
+        	}
+        }
         // Def variables
         IloIntVar[][] x = new IloIntVar[numNodes][];
         IloIntVar[][][] y = new IloIntVar[numNodes][][];
@@ -80,20 +88,24 @@ public class TimeStaged3 {
     	
     	// contrainte 32
 		IloLinearNumExpr time32 = cplex.linearNumExpr();
-        for (int i = 0; i < numNodes; i++){
+        for (int i = 1; i < numNodes; i++){
         	time32.addTerm(1, y[i][0][numNodes-1]);
         }
     	cplex.addEq(1, time32);
 
     	// contrainte 33
         for (int t = 1; t < numNodes; t++){
-        	for(int i = 1; i < numNodes; i++){
+        	for(int i = 0; i < numNodes; i++){
         		IloLinearNumExpr time33 = cplex.linearNumExpr();
         		for(int j = 0; j < numNodes; j++){
-            		time33.addTerm(1, y[i][j][t]);
-            	}
+        			if(j!=i){
+        				time33.addTerm(1, y[i][j][t]);
+        			}
+        		}
         		for(int k = 0; k < numNodes; k++){
-            		time33.addTerm(-1, y[k][i][t-1]);
+        			if(k!=i){
+        				time33.addTerm(-1, y[k][i][t-1]);
+        			}
             	}
         		cplex.addEq(time33, 0);
         	}

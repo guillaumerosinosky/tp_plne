@@ -3,6 +3,7 @@ package plne;
 import ilog.concert.IloException;
 import ilog.concert.IloIntVar;
 import ilog.concert.IloLinearNumExpr;
+import ilog.concert.IloNumVar;
 import ilog.concert.IloObjective;
 import ilog.cplex.IloCplex;
 
@@ -11,7 +12,7 @@ import java.util.TreeSet;
 
 import vrp.Map;
 
-public class TimeStaged1 {
+public class FlowBased2 {
 
 	public static IloIntVar[][] defModel(IloCplex cplex, Map map) throws IloException {
         
@@ -25,13 +26,12 @@ public class TimeStaged1 {
         }
         // Def variables
         IloIntVar[][] x = new IloIntVar[numNodes][];
-        IloIntVar[][][] y = new IloIntVar[numNodes][][];
+        IloNumVar[][] y = new IloNumVar[numNodes][];
+        IloNumVar[][] z = new IloNumVar[numNodes][];
         for(int i = 0; i < numNodes; i++){
         	x[i] = cplex.boolVarArray(numNodes);
-        	y[i] = new IloIntVar[numNodes][];
-        	for(int j = 0; j < numNodes; j++){
-        		y[i][j] = cplex.boolVarArray(numNodes);
-        	}
+        	y[i] = cplex.numVarArray(numNodes, Double.MIN_VALUE, Double.MAX_VALUE);
+        	z[i] = cplex.numVarArray(numNodes, Double.MIN_VALUE, Double.MAX_VALUE);
         }
         
         // Objectif
@@ -65,63 +65,69 @@ public class TimeStaged1 {
         	cplex.addEq(1, chemins); 
         }
         
-        // Time Constraints
-		// contrainte 23
-        IloLinearNumExpr time23 = cplex.linearNumExpr();
-        for (int i = 0; i < numNodes; i++){
-        	for (int j = 0; j < numNodes; j++){
-        		for (int t = 0; t < numNodes; t++){
-        			time23.addTerm(1, y[i][j][t]);
-        		}
-        	}
+        // Flow Constraints
+		// contrainte 11
+        
+        IloLinearNumExpr flowEleven = cplex.linearNumExpr();
+        for(int j = 1; j < numNodes; j++){
+        	flowEleven.addTerm(1, y[0][j]);
+        	flowEleven.addTerm(-1, y[j][0]);
         }
-        cplex.addEq(time23, numNodes);
-        // contrainte 24
+        cplex.addEq(flowEleven, numNodes-1); 
+
+       // contrainte 12 
         for (int i = 1; i < numNodes; i++){
-        	IloLinearNumExpr precedence = cplex.linearNumExpr();
-        	for (int j = 0; j < numNodes; j++){
-        		for (int t = 1; t < numNodes; t++){
-        			precedence.addTerm(t, y[i][j][t]);
-        		}
-        	}
-        	for (int k = 0; k < numNodes; k++){
-        		for (int t = 0; t < numNodes; t++){
-        			precedence.addTerm(-t, y[k][i][t]);
-        		}
-        	}
-        	cplex.addEq(precedence, 1);
-        }
-        // contrainte 25
-        for(int j = 0; j < numNodes; j++){
-        	for(int i = 0; i < numNodes; i++){
-        		if(i!=j){
-        			IloLinearNumExpr link = cplex.linearNumExpr();
-        			link.addTerm(1, x[i][j]);
-        			for (int t = 0; t < numNodes; t++){
-        				link.addTerm(-1, y[i][j][t]);
-        			}
-        			cplex.addEq(link,0);
-        		}
-        	}
-        }
-        // contrainte 26
-        for (int t = 0; t < numNodes-1; t++){
-        	for(int i = 0; i < numNodes; i++){
-        		cplex.addEq(y[i][0][t], 0);
-        	}
-        }
-        for (int t = 1; t < numNodes; t++){
-        	for(int i = 0; i < numNodes; i++){
-        		cplex.addEq(y[0][i][t], 0);
-        	}
-        }
-        for(int i = 1; i < numNodes; i++){
+        	IloLinearNumExpr flowTwelve = cplex.linearNumExpr();
         	for(int j = 0; j < numNodes; j++){
         		if(i!=j){
-        			cplex.addEq(y[i][j][0], 0);
+        			flowTwelve.addTerm(1, y[i][j]);
+        			flowTwelve.addTerm(-1, y[j][i]);
         		}
         	}
+        	cplex.addEq(flowTwelve, 1); 
         }
+/*
+		// contrainte 13
+        IloLinearNumExpr flowThirteen = cplex.linearNumExpr();
+        for(int j = 1; j < numNodes; j++){
+        	flowThirteen.addTerm(1, z[0][j]);
+        	flowThirteen.addTerm(-1, z[j][0]);
+        }
+        cplex.addEq(flowThirteen, -numNodes+1); 
+
+       // contrainte 14
+        for (int i = 1; i < numNodes; i++){
+        	IloLinearNumExpr flowFourteen = cplex.linearNumExpr();
+        	for(int j = 0; j < numNodes; j++){
+        		if(i!=j){
+        			flowFourteen.addTerm(1, z[i][j]);
+        			flowFourteen.addTerm(-1, z[j][i]);
+        		}
+        	}
+        	cplex.addEq(flowFourteen, -1); 
+        }
+
+        // contrainte 15
+        for (int i = 0; i < numNodes; i++){
+        	IloLinearNumExpr flowFifteen = cplex.linearNumExpr();
+        	for (int j = 0; j < numNodes; j++){
+        		flowFifteen.addTerm(1, y[i][j]);
+        		flowFifteen.addTerm(1, z[i][j]);
+        	}
+        	cplex.addEq(flowFifteen, numNodes-1); 
+        }
+
+        // contrainte 16
+        
+        for(int j = 0; j < numNodes; j++){
+        	for(int i = 0; i < numNodes; i++){
+        		cplex.addEq(
+        				cplex.sum(y[i][j], z[i][j]), 
+        				cplex.prod(numNodes-1, x[i][j])
+        			);
+        	}
+        }
+       */
 		return x;
 
 	}

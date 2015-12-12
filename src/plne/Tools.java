@@ -52,7 +52,7 @@ public class Tools {
 		while(pos != 0 || init){
 			init = false;
 			for (int i = 0; i < x[pos].length; i++) {
-				if (cplex.getValue(x[pos][i]) == 1) {
+				if (cplex.getValue(x[pos][i]) > 0.9) {
 					res.add(i);
 					pos = i;
 					break;

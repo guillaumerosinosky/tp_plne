@@ -3,24 +3,33 @@ package plne;
 import ilog.concert.IloException;
 import ilog.concert.IloIntVar;
 import ilog.concert.IloLinearNumExpr;
+import ilog.concert.IloNumVar;
 import ilog.concert.IloObjective;
 import ilog.cplex.IloCplex;
 
 import java.util.ArrayList;
 import java.util.TreeSet;
 
+import vrp.Map;
+
 public class FlowBased {
 
 	public static IloIntVar[][] defModel(IloCplex cplex, Map map) throws IloException {
         
         int numNodes = map.getNumNodes(); 
-        double[][] weight = map.weights; 
+        double[][] weight = new double[numNodes][];
+        for(int i = 0; i < numNodes; i++){
+        	weight[i] = new double[numNodes];
+        	for(int j = 0; j < numNodes; j++){
+        		weight[i][j] = map.getWeight(i, j);
+        	}
+        }
         // Def variables
         IloIntVar[][] x = new IloIntVar[numNodes][];
-        IloIntVar[][] y = new IloIntVar[numNodes][];
+        IloNumVar[][] y = new IloNumVar[numNodes][];
         for(int i = 0; i < numNodes; i++){
         	x[i] = cplex.boolVarArray(numNodes);
-        	y[i] = cplex.intVarArray(numNodes, 0, Integer.MAX_VALUE);
+        	y[i] = cplex.numVarArray(numNodes, 0, Double.MAX_VALUE);
         }
         
         // Objectif
@@ -67,8 +76,9 @@ public class FlowBased {
         IloLinearNumExpr flowEight = cplex.linearNumExpr();
         for(int j = 1; j < numNodes; j++){
         	flowEight.addTerm(1, y[0][j]);
-        	cplex.addEq(flowEight, numNodes-1); 
         }
+        cplex.addEq(flowEight, numNodes-1); 
+
         // contrainte 9
         for(int j = 1; j < numNodes; j++){
         	IloLinearNumExpr flow = cplex.linearNumExpr();
