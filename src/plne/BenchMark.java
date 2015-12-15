@@ -16,6 +16,8 @@ public class BenchMark {
 		Colony colony = new Colony(0, phMap, map.getNumNodes());
 		colony.solve();
 		bestPath.addAll(colony.getBestPath());
+		System.out.println(bestPath);
+		System.out.println("Valeur de l'objectif  : " + colony.getBestScore() );
 		return bestPath;
 	}
 	
@@ -40,15 +42,18 @@ public class BenchMark {
 	}
 	
 	public static void main(String[] args) {
-			MapPLNE map = new MapPLNE(15);
-			double timeLimit = 0.7;
+			MapPLNE map = new MapPLNE(20);
+			double timeLimit = 3;
 			ArrayList<Integer> initSol = antColonySolution(map);
-			System.out.println(initSol);
+			IloCplex cplexC = null;
 			IloCplex cplex = null;
 			try {
+				cplexC = new IloCplex();
+				cplexC.setOut(null);
+				cplexC.setParam(IloCplex.DoubleParam.TiLim, 10);
 				cplex = new IloCplex();
 				cplex.setOut(null);
-				cplex.setParam(IloCplex.DoubleParam.TiLim, 100);
+				cplex.setParam(IloCplex.DoubleParam.TiLim, 10);
 			} catch (IloException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -59,16 +64,16 @@ public class BenchMark {
 			
 			System.out.println("\n Conventionnal formulation");
 			try {
-				cplex.clearModel();
-				cplex.setParam(IloCplex.DoubleParam.TiLim, timeLimit);
-				x = Conventionnal.defModel(cplex, map);
-				setInitSol(cplex, x, initSol);
-				cplex.solve();
-				cplex.getCplexTime();
-				objVal = cplex.getObjValue();
-				resX = Tools.getResult(cplex, x);
-				cplex.clearModel();
-				System.out.println("Valeur de l'objectif  : " + objVal + " in " + cplex.getCplexTime());
+				cplexC.clearModel();
+				cplexC.setParam(IloCplex.DoubleParam.TiLim, timeLimit);
+				x = Conventionnal.defModel(cplexC, map);
+				setInitSol(cplexC, x, initSol);
+				cplexC.solve();
+				cplexC.getCplexTime();
+				objVal = cplexC.getObjValue();
+				resX = Tools.getResult(cplexC, x);
+				cplexC.clearModel();
+				System.out.println("Valeur de l'objectif  : " + objVal + " in " + cplexC.getCplexTime());
 				System.out.println(resX);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
