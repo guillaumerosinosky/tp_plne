@@ -1,16 +1,9 @@
 package plne;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Scanner;
-
 import vrp.Map;
 
 public class MapPLNE extends Map{
-
+ /*
 	private int[][] weights;
 	private int[] demands;
 	private double[] x;
@@ -133,4 +126,56 @@ public class MapPLNE extends Map{
 		Arrays.parallelPrefix(tmp, (x, y) -> x + y);
 		return tmp[tmp.length-1];
 	}
+	
+		public MapPLNE(String filename) {
+		try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+		    String line;
+		    Scanner st;
+		    if((line = br.readLine()) != null){
+		       st = new Scanner(line);
+		       numNodes = st.nextInt() + 1; 
+		       capacity = st.nextInt();
+		    }
+		    demands = new int[getNumNodes()];
+		    weights = new int[getNumNodes()][getNumNodes()];
+		    x = new double[getNumNodes()];
+		    y = new double[getNumNodes()];
+		    int k = 0;
+		    while ((line = br.readLine()) != null) {
+		    	st = new Scanner(line);
+		    	x[k] = st.nextDouble();
+		    	y[k] = st.nextDouble();
+		    	if(k!=0){
+		    		demands[k] = st.nextInt();
+		    	}
+		    	k++;
+		    }
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		for(int i = 0; i<getNumNodes(); i++){
+			for(int j = 0; j<getNumNodes(); j++){
+				weights[i][j] = (int)(Math.hypot(x[i]-x[j], y[i]-y[j])*1000);
+			}
+		}
+
+	}
+ */
+	public MapPLNE(MapPLNE map) {	
+		super(map);
+	}
+
+	public MapPLNE( int numNodes) {
+		super(numNodes);
+	}
+	
+	public MapPLNE(){
+		super();
+	}
+	
 }
