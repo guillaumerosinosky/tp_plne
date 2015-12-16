@@ -42,7 +42,7 @@ public class BenchMark {
 	}
 	
 	public static void main(String[] args) {
-			MapPLNE map = new MapPLNE(20);
+			MapPLNE map = new MapPLNE(9);
 			double timeLimit = 3;
 			ArrayList<Integer> initSol = antColonySolution(map);
 			IloCplex cplexC = null;
@@ -114,7 +114,25 @@ public class BenchMark {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}	
+			
+			System.out.println("\n Flow F3 formulation");
+			try {
+				cplex.clearModel();
+				cplex.setParam(IloCplex.DoubleParam.TiLim, timeLimit);
+				x = FlowBased3.defModel(cplex, map);
+				setInitSol(cplex, x, initSol);
+				cplex.solve();
+				objVal = cplex.getObjValue();
+				resX = Tools.getResult(cplex, x);
+				cplex.clearModel();
+				System.out.println("Valeur de l'objectif  : " + objVal + " in " + cplex.getCplexTime());
 
+				System.out.println(resX);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}	
+			
 			System.out.println("\n Sequential S formulation");
 			try {
 				cplex.clearModel();
