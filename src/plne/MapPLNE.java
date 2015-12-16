@@ -177,5 +177,12 @@ public class MapPLNE extends Map{
 	public MapPLNE(){
 		super();
 	}
+
+	public MapPLNE(String filename) {
+		super(filename);
+	}
 	
+	public int getCapacity() {
+		return Integer.MAX_VALUE;
+	}
 }
