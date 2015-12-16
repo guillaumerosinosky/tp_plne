@@ -182,7 +182,14 @@ public class MapPLNE extends Map{
 		super(filename);
 	}
 	
+	@Override
 	public int getCapacity() {
 		return Integer.MAX_VALUE;
 	}
+	
+	@Override
+	public int getDemand(int destination) {
+		return 0;
+	}
+	
 }
