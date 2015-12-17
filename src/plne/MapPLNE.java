@@ -1,8 +1,39 @@
 package plne;
 
+import java.nio.file.Paths;
+
+
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import vrp.Map;
 
 public class MapPLNE extends Map{
+	public void generateDot(String pathFile) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("graph g1 {");
+		sb.append("overlap=false;");
+		sb.append("splines=true;");
+		for (int i=0; i< getNumNodes(); i++){
+			for (int j=0; j<getNumNodes(); j++) 
+				if (i > j)
+			{
+				int w = getWeight(i, j);
+				if (w != 0) {
+					sb.append(String.format("%d -- %d[label=%d];", i,j,w));
+				}
+			}
+		}
+		sb.append("}");
+		
+		try {
+			Files.write(Paths.get(pathFile), sb.toString().getBytes());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
  /*
 	private int[][] weights;
 	private int[] demands;

@@ -42,7 +42,9 @@ public class BenchMark {
 	}
 	
 	public static void main(String[] args) {
+			//MapPLNE map = new MapPLNE("/home/guillaume/git/tp_plne/instances/cmt/vrpnc1.txt");
 			MapPLNE map = new MapPLNE(9);
+			map.generateDot("graph9.dot");
 			double timeLimit = 3;
 			ArrayList<Integer> initSol = antColonySolution(map);
 			IloCplex cplexC = null;
