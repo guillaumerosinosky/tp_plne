@@ -10,7 +10,7 @@ import ilog.concert.*;
 import ilog.cplex.IloCplex;
 
 
-public class Conventionnal {
+public class ConventionnalLC2 {
 
 	public static class SubtourLazyConsCallback 
 	extends IloCplex.LazyConstraintCallback {
@@ -91,7 +91,7 @@ public class Conventionnal {
 	} // END BendersLazyConsCallback
 
 	
-	public static IloIntVar[][] defModel(IloCplex cplex, Map map) throws IloException {
+	public static IloIntVar[][] defModel(IloCplex cplex, Map map, int scoreInit) throws IloException {
         int numNodes = map.getNumNodes(); 
         double[][] weight = new double[numNodes][];
         IloIntVar[][] x = new IloIntVar[numNodes][];
@@ -109,6 +109,7 @@ public class Conventionnal {
         		objectif.addTerm(weight[j][i],  x[j][i]);
         	}
         }
+        cplex.addLe(objectif, scoreInit);
         obj.setExpr(objectif);
         
         
@@ -133,16 +134,16 @@ public class Conventionnal {
         
         
         
-       // cplex.setParam(IloCplex.IntParam.MIPSearch, IloCplex.MIPSearch.Traditional);
-       // cplex.setParam(IloCplex.IntParam.Threads, 1);
-       // cplex.setParam(IloCplex.BooleanParam.PreInd, false);
-       // cplex.use(new SubtourLazyConsCallback(x, cplex)); 
+        cplex.setParam(IloCplex.IntParam.MIPSearch, IloCplex.MIPSearch.Traditional);
+        cplex.setParam(IloCplex.IntParam.Threads, 1);
+        cplex.setParam(IloCplex.BooleanParam.PreInd, false);
+        cplex.use(new SubtourLazyConsCallback(x, cplex)); 
         
 		TreeSet<Integer> F = new TreeSet<Integer>();
 		for(int i = 1; i < numNodes; i++){
 			F.add(i);
 		}
-		ArrayList<ArrayList<Integer>> coupes = Tools.coupe(F, 1, F.size());
+		ArrayList<ArrayList<Integer>> coupes = Tools.coupe(F, 1, Math.min(F.size(), 3));
         for(ArrayList<Integer> M : coupes){
         	IloLinearNumExpr coupeCard = cplex.linearNumExpr();
         	for(int j : M){
@@ -164,7 +165,7 @@ public class Conventionnal {
 		try{
 			Map map = new Map();
 			IloCplex cplex = new IloCplex();
-			IloIntVar[][] x = defModel(cplex, map);
+			IloIntVar[][] x = defModel(cplex, map, Integer.MAX_VALUE);
 			if ( cplex.solve() ) {
 				cplex.output().println("Solution status = " + Tools.getX(cplex, x));
 				cplex.output().println("Solution value  = " + cplex.getObjValue());

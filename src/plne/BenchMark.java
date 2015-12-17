@@ -1,6 +1,7 @@
 package plne;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import vrp.*;
@@ -10,6 +11,8 @@ import ilog.cplex.IloCplex;
 
 public class BenchMark {
 
+	private static int colonyScore;
+
 	public static ArrayList<Integer> antColonySolution(MapPLNE map){
 		PheromonedMap phMap = new PheromonedMap(map, 0.8);
 		ArrayList<Integer> bestPath = new ArrayList<Integer>();
@@ -18,6 +21,7 @@ public class BenchMark {
 		bestPath.addAll(colony.getBestPath());
 		System.out.println(bestPath);
 		System.out.println("Valeur de l'objectif  : " + colony.getBestScore() );
+		colonyScore = colony.getBestScore();
 		return bestPath;
 	}
 	
@@ -45,7 +49,7 @@ public class BenchMark {
 			//MapPLNE map = new MapPLNE("/home/guillaume/git/tp_plne/instances/cmt/vrpnc1.txt");
 			MapPLNE map = new MapPLNE(9);
 			map.generateDot("graph9.dot");
-			double timeLimit = 3;
+			double timeLimit = 60;
 			ArrayList<Integer> initSol = antColonySolution(map);
 			IloCplex cplexC = null;
 			IloCplex cplex = null;
@@ -65,6 +69,7 @@ public class BenchMark {
 			IloIntVar[][] x;
 			
 			System.out.println("\n Conventionnal formulation");
+			if(map.getNumNodes() <16){
 			try {
 				cplexC.clearModel();
 				cplexC.setParam(IloCplex.DoubleParam.TiLim, timeLimit);
@@ -81,6 +86,43 @@ public class BenchMark {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			}
+			
+			System.out.println("\n Conventionnal formulation, Lazy cuts");
+			try {
+				cplexC.clearModel();
+				cplexC.setParam(IloCplex.DoubleParam.TiLim, timeLimit);
+				x = ConventionnalLC.defModel(cplexC, map, colonyScore);
+				cplexC.solve();
+				cplexC.getCplexTime();
+				objVal = cplexC.getObjValue();
+				resX = Tools.getResult(cplexC, x);
+				cplexC.clearModel();
+				System.out.println("Valeur de l'objectif  : " + objVal + " in " + cplexC.getCplexTime());
+				System.out.println(resX);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			System.out.println("\n Conventionnal formulation, Lazy cuts + 3 arête sous tour");
+			try {
+				cplexC.clearModel();
+				cplexC.setParam(IloCplex.DoubleParam.TiLim, timeLimit);
+				x = ConventionnalLC2.defModel(cplexC, map, colonyScore);
+				cplexC.solve();
+				cplexC.getCplexTime();
+				objVal = cplexC.getObjValue();
+				resX = Tools.getResult(cplexC, x);
+				cplexC.clearModel();
+				System.out.println("Valeur de l'objectif  : " + objVal + " in " + cplexC.getCplexTime());
+				System.out.println(resX);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			
 			System.out.println("\n Flow F1 formulation");
 			try {
 				cplex.clearModel();
@@ -99,23 +141,23 @@ public class BenchMark {
 				e.printStackTrace();
 			}
 
-			System.out.println("\n Flow F2 formulation");
-			try {
-				cplex.clearModel();
-				cplex.setParam(IloCplex.DoubleParam.TiLim, timeLimit);
-				x = FlowBased2.defModel(cplex, map);
-				setInitSol(cplex, x, initSol);
-				cplex.solve();
-				objVal = cplex.getObjValue();
-				resX = Tools.getResult(cplex, x);
-				cplex.clearModel();
-				System.out.println("Valeur de l'objectif  : " + objVal + " in " + cplex.getCplexTime());
-
-				System.out.println(resX);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}	
+//			System.out.println("\n Flow F2 formulation");
+//			try {
+//				cplex.clearModel();
+//				cplex.setParam(IloCplex.DoubleParam.TiLim, timeLimit);
+//				x = FlowBased2.defModel(cplex, map);
+//				setInitSol(cplex, x, initSol);
+//				cplex.solve();
+//				objVal = cplex.getObjValue();
+//				resX = Tools.getResult(cplex, x);
+//				cplex.clearModel();
+//				System.out.println("Valeur de l'objectif  : " + objVal + " in " + cplex.getCplexTime());
+//
+//				System.out.println(resX);
+//			} catch (Exception e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}	
 			
 			System.out.println("\n Flow F3 formulation");
 			try {
